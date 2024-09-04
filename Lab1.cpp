@@ -41,7 +41,6 @@ int countOnes(int num) {
 
 void oneFlow(int** matrix, int M, int N) {
 
-    
     for (int k = 0; k < M; k++) {
         int result = 0;
         for (int i = 0; i < N; i++) {
@@ -49,10 +48,10 @@ void oneFlow(int** matrix, int M, int N) {
                 result += countOnes(matrix[k][i] * matrix[k][j]);
             }
         }
-        //cout << result << " ";
     }
 
 }
+
 
 int main()
 {
@@ -63,7 +62,7 @@ int main()
     cout << M << " " << N << endl;
 
     int** matrix = generateMatrix(M, N);
-    
+
     int i, j, k;
     int result;
     double start;
@@ -71,53 +70,42 @@ int main()
 
     start = omp_get_wtime();
 
-
     // count ones in binary
-    #pragma omp parallel for shared(matrix) private(i,j,k)
-    for (k = 0; k < M; k++) {
-        result = 0;
-        for (i = 0; i < N; i++) {
-            for (j = 0; j < N; j++) {
-                result += countOnes(matrix[k][i] * matrix[k][j]);
-
+    #pragma omp parallel shared(matrix, result) private(k) num_threads(15)
+    {
+        #pragma omp for private(i, j) collapse(3)
+        for (k = 0; k < M; k++) {
+            result = 0;
+            for (i = 0; i < N; i++) {
+                for (j = i + 1; j < N; j++) {
+                    result += countOnes(matrix[k][i] * matrix[k][j]);
+                }
             }
+
         }
-        //cout << result << " ";
-
     }
+
     end = omp_get_wtime();
-
-
 
     // printing
     //printMatrix(matrix, M, N);
 
-    //cout << result << endl;
-
-    printf("Work took %f seconds\n", end - start);
-
+    cout << "Work took " << end - start << " seconds\n";
 
     start = omp_get_wtime();
 
     for (k = 0; k < M; k++) {
         result = 0;
         for (i = 0; i < N; i++) {
-            for (j = 0; j < N; j++) {
-                int num = matrix[k][i] * matrix[k][j];
-                while (num > 0) {
-                    result += num % 2;
-                    num = num / 2;
-                }
-
+            for (j = i + 1; j < N; j++) {
+                result += countOnes(matrix[k][i] * matrix[k][j]);
             }
         }
-        //cout << result << " ";
-
     }
 
     end = omp_get_wtime();
-    printf("Work with one flow took %f seconds\n", end - start);
 
+    cout << "Work with 1 flow took " << end - start << " seconds\n";
 
     return 0;
 
