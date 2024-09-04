@@ -52,60 +52,105 @@ void oneFlow(int** matrix, int M, int N) {
 
 }
 
-
-int main()
-{
-    srand(time(NULL));
-    // generate parameters
-    int M = 1000;
-    int N = 1000;
-    cout << M << " " << N << endl;
-
-    int** matrix = generateMatrix(M, N);
-
-    int i, j, k;
-    int result;
+void Lab2() {
+    const int NMAX = 2000;
+    const int LIMIT = 875;
+    int i, j;
+    float sum;
+    float** a = new float* [NMAX];
     double start;
     double end;
 
+    for (i = 0; i < NMAX; i++) {
+        a[i] = new float[NMAX];
+        for (j = 0; j < NMAX; j++)
+            a[i][j] = (float) i + j;
+    }
+
+
     start = omp_get_wtime();
 
-    // count ones in binary
-    #pragma omp parallel shared(matrix, result) private(k) num_threads(15)
+    for (i = 0; i < NMAX; i++)
     {
-        #pragma omp for private(i, j) collapse(3)
-        for (k = 0; k < M; k++) {
-            result = 0;
-            for (i = 0; i < N; i++) {
-                for (j = i + 1; j < N; j++) {
-                    result += countOnes(matrix[k][i] * matrix[k][j]);
-                }
-            }
-
-        }
+        sum = 0;
+        for (j = 0; j < NMAX; j++)
+            sum += a[i][j];
     }
 
     end = omp_get_wtime();
+    cout << "Work with 1 flow took " << end - start << " seconds\n";
 
-    // printing
-    //printMatrix(matrix, M, N);
+    start = omp_get_wtime();
+    #pragma omp parallel shared(a) if (NMAX>LIMIT)
+    {
+        #pragma omp for private(i,j,sum) 
+        for (i = 0; i < NMAX; i++)
+        {
+            sum = 0;
+            for (j = 0; j < NMAX; j++)
+                sum += a[i][j];
+        }
+    }
+    end = omp_get_wtime();
 
     cout << "Work took " << end - start << " seconds\n";
 
-    start = omp_get_wtime();
+}
 
-    for (k = 0; k < M; k++) {
-        result = 0;
-        for (i = 0; i < N; i++) {
-            for (j = i + 1; j < N; j++) {
-                result += countOnes(matrix[k][i] * matrix[k][j]);
-            }
-        }
-    }
+int main()
+{
+    Lab2();
+    //srand(time(NULL));
+    //// generate parameters
+    //int M = 1000;
+    //int N = 1000;
+    //cout << M << " " << N << endl;
 
-    end = omp_get_wtime();
+    //int** matrix = generateMatrix(M, N);
 
-    cout << "Work with 1 flow took " << end - start << " seconds\n";
+    //int i, j, k;
+    //int result;
+    //double start;
+    //double end;
+
+    //start = omp_get_wtime();
+
+    //// count ones in binary
+    //#pragma omp parallel shared(matrix, result) private(k) num_threads(15)
+    //{
+    //    #pragma omp for private(i, j) collapse(3)
+    //    for (k = 0; k < M; k++) {
+    //        result = 0;
+    //        for (i = 0; i < N; i++) {
+    //            for (j = i + 1; j < N; j++) {
+    //                result += countOnes(matrix[k][i] * matrix[k][j]);
+    //            }
+    //        }
+
+    //    }
+    //}
+
+    //end = omp_get_wtime();
+
+    //// printing
+    ////printMatrix(matrix, M, N);
+
+    //cout << "Work took " << end - start << " seconds\n";
+
+    //start = omp_get_wtime();
+
+    //for (k = 0; k < M; k++) {
+    //    result = 0;
+    //    for (i = 0; i < N; i++) {
+    //        for (j = i + 1; j < N; j++) {
+    //            result += countOnes(matrix[k][i] * matrix[k][j]);
+    //        }
+    //    }
+    //}
+
+    //end = omp_get_wtime();
+
+    //cout << "Work with 1 flow took " << end - start << " seconds\n";
 
     return 0;
 
