@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <omp.h>
 
 using namespace std;
 
@@ -38,32 +39,86 @@ int countOnes(int num) {
     return cnt;
 }
 
-int main()
-{
-    srand(time(NULL));
-    // generate parameters
-    int M = generateInt();
-    int N = generateInt();
-    cout << M << " " << N << endl;
+void oneFlow(int** matrix, int M, int N) {
 
-    int** matrix = generateMatrix(M, N);
-
-    // count ones in binary
-    int result = 0;
+    
     for (int k = 0; k < M; k++) {
+        int result = 0;
         for (int i = 0; i < N; i++) {
             for (int j = i + 1; j < N; j++) {
                 result += countOnes(matrix[k][i] * matrix[k][j]);
             }
         }
+        //cout << result << " ";
+    }
+
+}
+
+int main()
+{
+    srand(time(NULL));
+    // generate parameters
+    int M = 1000;
+    int N = 1000;
+    cout << M << " " << N << endl;
+
+    int** matrix = generateMatrix(M, N);
+    
+    int i, j, k;
+    int result;
+    double start;
+    double end;
+
+    start = omp_get_wtime();
+
+
+    // count ones in binary
+    #pragma omp parallel for shared(matrix) private(i,j,k)
+    for (k = 0; k < M; k++) {
+        result = 0;
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
+                result += countOnes(matrix[k][i] * matrix[k][j]);
+
+            }
+        }
+        //cout << result << " ";
 
     }
+    end = omp_get_wtime();
+
 
 
     // printing
-    printMatrix(matrix, M, N);
+    //printMatrix(matrix, M, N);
 
-    cout << result << endl;
+    //cout << result << endl;
+
+    printf("Work took %f seconds\n", end - start);
+
+
+    start = omp_get_wtime();
+
+    for (k = 0; k < M; k++) {
+        result = 0;
+        for (i = 0; i < N; i++) {
+            for (j = 0; j < N; j++) {
+                int num = matrix[k][i] * matrix[k][j];
+                while (num > 0) {
+                    result += num % 2;
+                    num = num / 2;
+                }
+
+            }
+        }
+        //cout << result << " ";
+
+    }
+
+    end = omp_get_wtime();
+    printf("Work with one flow took %f seconds\n", end - start);
+
+
     return 0;
 
 }
