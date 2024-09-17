@@ -55,8 +55,8 @@ void oneFlow(int** matrix, int M, int N) {
 void Lab1() {
     srand(time(NULL));
     // generate parameters
-    int M = 1000;
-    int N = 1000;
+    int M = 100;
+    int N = 100;
     cout << M << " " << N << endl;
 
     int** matrix = generateMatrix(M, N);
@@ -69,9 +69,9 @@ void Lab1() {
     start = omp_get_wtime();
 
     // count ones in binary
-    #pragma omp parallel shared(matrix, result) private(k) num_threads(15)
+    #pragma omp parallel shared(matrix, result) private(k) num_threads(7)
     {
-        #pragma omp for private(i, j) collapse(3)
+        #pragma omp for private(i, j) collapse(2)
         for (k = 0; k < M; k++) {
             result = 0;
             for (i = 0; i < N; i++) {
@@ -107,7 +107,7 @@ void Lab1() {
 }
 
 void Lab2() {
-    const int NMAX = 886;
+    const int NMAX = 1500;
     const int LIMIT = 885;
     int i, j;
     float sum;
@@ -155,8 +155,8 @@ void Lab2() {
 
 int main()
 {
-    //Lab1();
-    Lab2();
+    Lab1();
+    //Lab2();
 
     return 0;
 
