@@ -9,6 +9,14 @@ int generateInt() {
     return rand() % 10 + 1;
 }
 
+int* generateArray(int columns) {
+    int* mas = new int[columns];
+    for (int i = 0; i < columns; i++) {
+        mas[i] = rand() % 100 + 1;
+    }
+    return mas;
+}
+
 int** generateMatrix(int rows, int columns) {
     int** mas = new int* [rows];
     for (int i = 0; i < rows; i++) {
@@ -19,6 +27,13 @@ int** generateMatrix(int rows, int columns) {
         mas[i] = array;
     }
     return mas;
+}
+
+void printArray(int* mas, int columns) {
+    for (int i = 0; i < columns; i++) {
+        cout << mas[i] << " ";
+    }
+    cout << endl;
 }
 
 void printMatrix(int** mas, int rows, int columns) {
@@ -153,10 +168,52 @@ void Lab2() {
 
 }
 
+void Lab3() {
+    int N = 1000000;
+    int* A = generateArray(N);
+    int* B = generateArray(N);
+    int* C = new int[N];
+    int s = 0;
+    double start;
+    double end;
+
+    start = omp_get_wtime();
+
+    #pragma omp parallel shared(A, B, C)
+    {
+    #pragma omp for reduction(+:s)
+        for (int i = 0; i < N; i++) {
+            C[i] = max(A[i], B[i]);
+            s += C[i];
+        }
+    }
+    end = omp_get_wtime();
+    //printArray(A, N);
+    //printArray(B, N);
+    //printArray(C, N);
+    cout << "N = " << N << endl << endl;
+    cout << "S = " << s << endl;
+    cout << "Work took " << end - start << " seconds\n\n";
+
+    s = 0;
+    start = omp_get_wtime();
+
+    for (int i = 0; i < N; i++) {
+        C[i] = max(A[i], B[i]);
+        s += C[i];
+    }
+
+    end = omp_get_wtime();
+    cout << "S = " << s << endl;
+    cout << "Work with 1 flow took " << end - start << " seconds\n";
+}
+
 int main()
 {
-    Lab1();
+    srand(time(NULL));
+    //Lab1();
     //Lab2();
+    Lab3();
 
     return 0;
 
