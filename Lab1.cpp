@@ -208,12 +208,59 @@ void Lab3() {
     cout << "Work with 1 flow took " << end - start << " seconds\n";
 }
 
+void Lab4() {
+    int N = 1000000;
+    int* A = generateArray(N);
+    int* B = generateArray(N);
+    int* C = new int[N];
+    int s = 0;
+    double start;
+    double end;
+
+    start = omp_get_wtime();
+
+    #pragma omp parallel shared(A, B, C)
+    {
+        #pragma omp for
+        for (int i = 0; i < N; i++) {
+            C[i] = max(A[i], B[i]);
+            #pragma omp atomic
+            s += C[i];
+        }
+    }
+    end = omp_get_wtime();
+    //printArray(A, N);
+    //printArray(B, N);
+    //printArray(C, N);
+    cout << "N = " << N << endl << endl;
+    cout << "S = " << s << endl;
+    cout << "Work (atomic) took " << end - start << " seconds\n\n";
+
+    s = 0;
+    start = omp_get_wtime();
+
+    #pragma omp parallel shared(A, B, C)
+    {
+        #pragma omp for
+        for (int i = 0; i < N; i++) {
+            C[i] = max(A[i], B[i]);
+            #pragma omp critical
+            s += C[i];
+        }
+    }
+
+    end = omp_get_wtime();
+    cout << "S = " << s << endl;
+    cout << "Work (critical) took " << end - start << " seconds\n";
+}
+
 int main()
 {
     srand(time(NULL));
     //Lab1();
     //Lab2();
-    Lab3();
+    //Lab3();
+    Lab4();
 
     return 0;
 
