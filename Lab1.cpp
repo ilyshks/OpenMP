@@ -195,6 +195,22 @@ void Lab3() {
     cout << "S = " << s << endl;
     cout << "Work took " << end - start << " seconds\n\n";
 
+    //s = 0;
+    //start = omp_get_wtime();
+
+    //#pragma omp parallel shared(A, B, C) num_threads(4)
+    //{
+    //    #pragma omp for reduction(+:s)
+    //    for (int i = 0; i < N; i++) {
+    //        C[i] = max(A[i], B[i]);
+    //        s += C[i];
+    //    }
+    //}
+    //end = omp_get_wtime();
+
+    //cout << "S = " << s << endl;
+    //cout << "Work (4 flows) took " << end - start << " seconds\n\n";
+
     s = 0;
     start = omp_get_wtime();
 
@@ -254,13 +270,100 @@ void Lab4() {
     cout << "Work (critical) took " << end - start << " seconds\n";
 }
 
+void Lab5() {
+    int N = 1000000;
+    int* A = generateArray(N);
+    int* B = generateArray(N);
+    int* C = new int[N];
+    int s = 0;
+    double start;
+    double end;
+
+    start = omp_get_wtime();
+
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            for (int i = 0; i < N / 2; i++) {
+                C[i] = max(A[i], B[i]);
+                #pragma omp atomic
+                s += C[i];
+            }
+        }
+
+        #pragma omp section
+        {
+            for (int i = N / 2; i < N; i++) {
+                C[i] = max(A[i], B[i]);
+                #pragma omp atomic
+                s += C[i];
+            }
+        }
+    }
+    end = omp_get_wtime();
+
+    cout << "N = " << N << endl << endl;
+    cout << "S = " << s << endl;
+    cout << "Work (2 sections) took " << end - start << " seconds\n\n";
+
+
+    s = 0;
+    start = omp_get_wtime();
+
+    #pragma omp parallel sections
+    {
+        #pragma omp section
+        {
+            for (int i = 0; i < N / 4; i++) {
+                C[i] = max(A[i], B[i]);
+                #pragma omp atomic
+                s += C[i];
+            }
+        }
+
+        #pragma omp section
+        {
+            for (int i = N / 4; i < N / 2; i++) {
+                C[i] = max(A[i], B[i]);
+                #pragma omp atomic
+                s += C[i];
+            }
+        }
+
+        #pragma omp section
+        {
+            for (int i = N / 2; i < (3 * N) / 4; i++) {
+                C[i] = max(A[i], B[i]);
+                #pragma omp atomic
+                s += C[i];
+            }
+        }
+
+        #pragma omp section
+        {
+            for (int i = (3 * N) / 4; i < N; i++) {
+                C[i] = max(A[i], B[i]);
+                #pragma omp atomic
+                s += C[i];
+            }
+        }
+    }
+    end = omp_get_wtime();
+
+    cout << "S = " << s << endl;
+    cout << "Work (4 sections) took " << end - start << " seconds\n\n";
+
+}
+
 int main()
 {
     srand(time(NULL));
     //Lab1();
     //Lab2();
     //Lab3();
-    Lab4();
+    //Lab4();
+    //Lab5();
 
     return 0;
 
