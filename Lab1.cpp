@@ -181,7 +181,7 @@ void Lab3() {
 
     #pragma omp parallel shared(A, B, C)
     {
-    #pragma omp for reduction(+:s)
+    #pragma omp for reduction(+:s) //nowait
         for (int i = 0; i < N; i++) {
             C[i] = max(A[i], B[i]);
             s += C[i];
@@ -193,7 +193,7 @@ void Lab3() {
     //printArray(C, N);
     cout << "N = " << N << endl << endl;
     cout << "S = " << s << endl;
-    cout << "Work took " << end - start << " seconds\n\n";
+    cout << "Work took (reduction) " << end - start << " seconds\n\n";
 
     //s = 0;
     //start = omp_get_wtime();
@@ -237,13 +237,15 @@ void Lab4() {
 
     #pragma omp parallel shared(A, B, C)
     {
-        #pragma omp for
+        #pragma omp for nowait
         for (int i = 0; i < N; i++) {
             C[i] = max(A[i], B[i]);
             #pragma omp atomic
             s += C[i];
         }
+    //#pragma omp barrier
     }
+    
     end = omp_get_wtime();
     //printArray(A, N);
     //printArray(B, N);
@@ -257,15 +259,17 @@ void Lab4() {
 
     #pragma omp parallel shared(A, B, C)
     {
-        #pragma omp for
+        #pragma omp for nowait
         for (int i = 0; i < N; i++) {
             C[i] = max(A[i], B[i]);
             #pragma omp critical
             s += C[i];
         }
+    //#pragma omp barrier
     }
 
     end = omp_get_wtime();
+    //cout << "N = " << N << endl << endl;
     cout << "S = " << s << endl;
     cout << "Work (critical) took " << end - start << " seconds\n";
 }
@@ -356,15 +360,60 @@ void Lab5() {
 
 }
 
+void Lab6_1() {
+    int N = 1000000;
+    int* A = generateArray(N);
+    int* B = generateArray(N);
+    int* C = new int[N];
+    int s = 0;
+    double start;
+    double end;
+
+    omp_lock_t lock;
+    omp_init_lock(&lock);
+
+    start = omp_get_wtime();
+
+    #pragma omp parallel shared(A, B, C, s)
+    {
+        #pragma omp for
+        for (int i = 0; i < N; i++) {
+            omp_set_lock(&lock);
+            C[i] = max(A[i], B[i]);
+            s += C[i];
+            omp_unset_lock(&lock);
+        }
+    }
+    end = omp_get_wtime();
+    cout << "N = " << N << endl << endl;
+    cout << "S = " << s << endl;
+    cout << "Work took " << end - start << " seconds\n\n";
+
+    omp_destroy_lock(&lock);
+
+    s = 0;
+    start = omp_get_wtime();
+
+    for (int i = 0; i < N; i++) {
+        C[i] = max(A[i], B[i]);
+        s += C[i];
+    }
+
+    end = omp_get_wtime();
+    cout << "S = " << s << endl;
+    cout << "Work with 1 flow took " << end - start << " seconds\n";
+}
+
 int main()
 {
     srand(time(NULL));
     //Lab1();
     //Lab2();
-    //Lab3();
+    Lab3();
     //Lab4();
     //Lab5();
-
+    //Lab6_1();
+    
     return 0;
 
 }
